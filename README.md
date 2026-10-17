@@ -1,3 +1,9 @@
+# Laboratorio PWA conectado a SQLite
+
+[Arranque, alcance y dossier de entrega](docs/LABORATORIO.md). Rama de trabajo desde develop; integración mediante PR sin merge automático.
+
+---
+
 # PWA Mobile Controller - Gorilla Escape: Gorilimpiadas
 
 Bienvenido al repositorio oficial del **Controlador Móvil PWA** para el videojuego **"Gorilla Escape: Gorilimpiadas"**. Esta Aplicación Web Progresiva actúa como un gamepad táctil e interactivo diseñado con enfoque *Mobile-First*, optimizado para pantallas táctiles y capaz de operar sin conexión en dispositivos móviles.
