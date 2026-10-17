@@ -1,88 +1,45 @@
-# Laboratorio PWA conectado a SQLite
+# Gorilla Escape — PWA y laboratorio de jugadores
 
-[Arranque, alcance y dossier de entrega](docs/LABORATORIO.md). Rama de trabajo desde develop; integración mediante PR sin merge automático.
+Fork de trabajo de [Quintana-117/Dise-o_pwa](https://github.com/Quintana-117/Dise-o_pwa). Autor original de la interfaz de mando: Hiram. Esta rama añade un laboratorio de persistencia; no sustituye el cliente técnico Unity/Java del monorepo.
 
----
+## Ejecutar el laboratorio
 
-# PWA Mobile Controller - Gorilla Escape: Gorilimpiadas
+Con Node24/npm y el backend Spring Boot del [PR #14](https://github.com/Josue1855/Gorilla-Escape-Backend/pull/14) iniciado en 127.0.0.1:8090:
 
-Bienvenido al repositorio oficial del **Controlador Móvil PWA** para el videojuego **"Gorilla Escape: Gorilimpiadas"**. Esta Aplicación Web Progresiva actúa como un gamepad táctil e interactivo diseñado con enfoque *Mobile-First*, optimizado para pantallas táctiles y capaz de operar sin conexión en dispositivos móviles.
-
----
-
-## 🏛️ Arquitectura del Sistema (React)
-
-La interfaz fue construida con **React 18**, estructurada en componentes modulares y desacoplados:
-
-1. **`App.jsx` (Componente Raíz / Controlador):**
-   - Implementa un D-Pad virtual y botones de gran tamaño diseñados ergonómicamente para el pulgar.
-   - Maneja el estado global del gamepad (`useState`) y la detección en tiempo real del estado de red (`navigator.onLine` mediante `useEffect`).
-   - Proporciona retroalimentación háptica (vibración móvil) para mejorar la inmersión del jugador.
-
-2. **`AvatarList.jsx` (Lobby de Personajes / Consumo de API):**
-   - Consume de forma asíncrona la API pública de prueba ([JSONPlaceholder Users](https://jsonplaceholder.typicode.com/users)) para simular competidores y atletas en el lobby.
-   - Renderiza tarjetas dinámicas con estados de carga (*skeleton/spinner*) y manejo resiliente de errores.
-
-3. **`styles.css` (Diseño Modular & Temática de Jungla):**
-   - Esquema de colores inspirado en la selva tropical (`#081c15`, `#1b4332`, `#2d6a4f`, `#52b788`, con acentos dorados `#f9c74f`).
-   - Implementación de Flexbox y CSS Grid con sombras táctiles 3D y diseño adaptable.
-
----
-
-## ⚡ Estrategia PWA y Modo Offline
-
-La PWA garantiza una experiencia nativa mediante:
-- **`manifest.json`:** Define la experiencia en modo `standalone` (sin barras de navegador), orientación vertical fija y tema jungle.
-- **`sw.js` (Service Worker):**
-  - **Pre-caching en Instalación:** Almacena en caché el *App Shell* básico (HTML, JavaScript, estilos y manifiesto).
-  - **Estrategia Cache-First:** Sirve assets locales instantáneamente desde el caché.
-  - **Soporte Offline para API:** Si el jugador pierde conectividad, el Service Worker intercepta la petición a la API y devuelve competidores de respaldo en caché o datos de rescate preconfigurados.
-
----
-
-## 📊 Diagrama de Arquitectura
-
-```mermaid
-graph LR
-    subgraph UI ["📱 Capa de Usuario (UI - React PWA)"]
-        A["App.jsx (Gamepad & Haptic Engine)"] --> B["AvatarList.jsx (Lobby de Competidores)"]
-        B --> C["styles.css (Estilos Jungle Arcade)"]
-    end
-
-    subgraph SW ["⚙️ Capa PWA (Service Worker)"]
-        D["sw.js (Service Worker Event Bus)"]
-        E[("Cache Storage (App Shell & Assets)")]
-        D <--> E
-    end
-
-    subgraph API ["🌐 Capa Externa (API & Red)"]
-        F["JSONPlaceholder API (/users)"]
-        G["Respaldo Mock Offline"]
-    end
-
-    A -- Registro & Eventos Red --> D
-    B -- fetch(/users) --> D
-    D -- Red disponible --> F
-    D -- Sin conexión --> G
+```bash
+npm ci
+npm test
+npm run build
+npm run lab
 ```
 
----
+Abrir http://127.0.0.1:4173/lab.html. El servidor Node sólo escucha loopback; sirve dist y proxya `/api/players` al backend. Es una herramienta de laboratorio, no el instalador del videojuego. Backend requiere JDK21 para desarrollo; primera descarga de dependencias requiere Internet.
 
-## 🚀 Instalación y Ejecución Local
+## Dos pantallas, alcances distintos
 
-1. Clona el repositorio e instala las dependencias:
-   ```bash
-   npm install
-   ```
-2. Inicia el servidor de desarrollo:
-   ```bash
-   npm run dev
-   ```
-3. Para probar la instalación como PWA en tu smartphone, conéctate en la misma red local o mediante un túnel HTTPS (como ngrok o Vite con SSL).
+| Entrada | Estado y responsabilidad |
+|---|---|
+| `/lab.html` | React → GET/POST reales → Spring Boot/JDBC → SQLite. Listado paginado, registro validado, mensajes de error y estado local offline. Integración comprobada en Chrome de escritorio. |
+| `/index.html` | Demostración histórica del mando y avatares JSONPlaceholder. Los botones modifican estado local; no acreditan conexión RTC/Unity ni gameplay real. |
 
----
+`LabApp.jsx` coordina formulario/listado; `player-api.js` valida contrato y clasifica errores; `lab-store.js` guarda estado en IndexedDB. El transporte de controles del monorepo no se modifica.
 
-## 👤 Autor
+## PWA y offline implementados
 
-- **Nombre:** Hiram
-- **Correo Electrónico:** [hiramquintanasoto@gmail.com](mailto:hiramquintanasoto@gmail.com)
+- `public/manifest.json` y `public/icons/lab.svg` se copian a dist. `tools/build-worker.mjs` genera `dist/sw.js` a partir de los assets compilados con hash; no precachea archivos JSX fuente.
+- Cache Storage contiene sólo app shell del mismo origen. API y POST quedan excluidos del Service Worker. No existen competidores de rescate ni respuestas SQL ficticias en el laboratorio.
+- IndexedDB `gorilla-players-lab-v1/state` guarda la última consulta y el borrador. La consulta local se etiqueta como posiblemente desactualizada; un borrador no es una fila confirmada en SQLite.
+- Sin conexión se puede recargar después de una visita online y conservar el borrador. Volver online no envía POST automáticamente; requiere acción explícita. No hay Background Sync.
+- Un envío de resultado incierto se marca antes de transmitir y queda bloqueado tras recargar hasta reconciliación. No se promete idempotencia backend ni reintento automático.
+
+Para comprobar offline usar `npm run build` + `npm run lab`; el modo Vite de desarrollo no registra el worker del laboratorio. Loopback es un contexto seguro para SW. Un móvil por LAN requiere HTTPS confiable y una tarea de integración posterior; no se certifica soporte físico por usar localhost.
+
+## Validación y entrega
+
+Siete pruebas de cliente, build Vite6.4.4 y auditoría npm sin vulnerabilidades reportadas: [CI PASS](https://github.com/Josue1855/Dise-o_pwa/actions/runs/38989521358) en commit `69084f5`. React18.3.1, plugin-react4.7.0; versiones completas en package-lock.json.
+
+[Dossier central con capturas auténticas, SQL, logs, red y almacenamiento](https://github.com/Josue1855/Gorilla-Escape-Backend/tree/feature/players-sqlite-increment/docs/laboratorio). [Guía local](docs/LABORATORIO.md). Quedan tres capturas literales de DevTools Network/Application/Console; JSON CDP no se presenta como captura. Prueba LAN/WAN física, teléfono e instalador final pendientes. Backend privado: el evaluador necesita acceso o el paquete autorizado de evidencias.
+
+## Colaboración
+
+Trabajo en ramas desde develop → PR a develop; main queda reservado para entregas aprobadas. [PR #1 del fork](https://github.com/Josue1855/Dise-o_pwa/pull/1), sin merge automático. El upstream original sólo ofrece main y permisos READ a esta cuenta; requiere que el mantenedor habilite develop y revise la incorporación. No se modificó su main ni se enviará un PR dirigido a main.
