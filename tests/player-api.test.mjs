@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { api, validateName } from '../src/player-api.js';
+const player={id:'bf6eee24-88e7-437f-abd1-9ed1fa2e27f8',displayName:'Persona',createdAt:'2026-10-17T01:03:09Z'};
+test('normaliza NFC, recorta y valida los límites del contrato',()=>{assert.equal(validateName(' Jose\u0301 '),'José');for(const v of ['   ','A'.repeat(41),'A;DROP TABLE','<script>'])assert.equal(validateName(v),null);assert.equal(validateName("O'Brien"),"O'Brien");});
+test('GET valida la respuesta y conserva identidad',async()=>{const r=await api('GET',undefined,async()=>Response.json({items:[player],limit:100,offset:0}));assert.deepEqual(r.data.items,[player]);});
+test('POST serializa sólo el nombre y requiere 201',async()=>{let calls=0;const r=await api('POST','Persona',async(url,opts)=>{calls++;assert.equal(opts.method,'POST');assert.deepEqual(JSON.parse(opts.body),{displayName:'Persona'});return Response.json(player,{status:201,headers:{'X-Request-Id':'request-fixture'}});});assert.equal(calls,1);assert.equal(r.requestId,'request-fixture');});
+test('POST con 200 no es una confirmación válida',async()=>{await assert.rejects(api('POST','Persona',async()=>Response.json(player)),{code:'INVALID_RESPONSE'});});
+test('fallo de red no se reintenta ni se presenta como guardado',async()=>{let calls=0;await assert.rejects(api('POST','Persona',async()=>{calls++;throw Error('network');}),{code:'NETWORK_UNCERTAIN'});assert.equal(calls,1);});
+test('400 del backend conserva código y correlación',async()=>{await assert.rejects(api('POST','Persona',async()=>Response.json({code:'VALIDATION_FAILED'},{status:400,headers:{'X-Request-Id':'fixture'}})),{code:'VALIDATION_FAILED',status:400,requestId:'fixture'});});
+test('HTML de proxy y listado malformado no generan datos ficticios',async()=>{await assert.rejects(api('GET',undefined,async()=>new Response('<html>offline</html>')),{code:'INVALID_RESPONSE'});await assert.rejects(api('GET',undefined,async()=>Response.json({items:[{id:1}]})),{code:'INVALID_RESPONSE'});});
