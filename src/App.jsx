@@ -48,6 +48,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <a href="/lab.html" style={{color: "#f9c74f", padding: 16}}>Abrir laboratorio PWA con SQLite</a>
       {/* 1. Header con estado y avatar seleccionado */}
       <header className="game-header">
         <div className="header-top">
