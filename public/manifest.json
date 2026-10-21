@@ -1,0 +1,24 @@
+{
+  "name": "Gorilla Escape — Laboratorio PWA",
+  "short_name": "Gorilla Lab",
+  "description": "Controlador móvil táctil para el videojuego Gorilla Escape: Gorilimpiadas",
+  "start_url": "/lab.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#081c15",
+  "theme_color": "#1b4332",
+  "icons": [
+    {
+      "src": "/icons/lab.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "games",
+    "entertainment",
+    "utilities"
+  ],
+  "scope": "/"
+}
