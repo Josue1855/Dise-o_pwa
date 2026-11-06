@@ -1,6 +1,21 @@
 # Gorilla Escape — PWA y laboratorio de jugadores
 
-Fork de trabajo de [Quintana-117/Dise-o_pwa](https://github.com/Quintana-117/Dise-o_pwa). Autor original de la interfaz de mando: Hiram. Esta rama añade un laboratorio de persistencia; no sustituye el cliente técnico Unity/Java del monorepo.
+Fork de trabajo de [Quintana-117/Dise-o_pwa](https://github.com/Quintana-117/Dise-o_pwa). Autor original de la interfaz de mando: Hiram. Incluye el control React del juego, importado de Gorilla-Escape/PWA, el laboratorio de jugadores y la demo histórica conservada.
+
+## Control del juego
+
+Con Node 24/npm:
+
+```bash
+npm ci
+npm test
+npm run build
+npm run serve
+```
+
+Abrir http://127.0.0.1:4173/. La pantalla pide el QR vigente de la PC; no simula una conexión. El servidor técnico del juego debe estar disponible en loopback :8080. El laboratorio utiliza un servidor distinto, Spring Boot :8090. `npm run dev` ofrece los mismos destinos de proxy en desarrollo. `npm run preview` sólo sirve archivos, sin estos proxies.
+
+[Alcance del traslado, rutas y evidencias](docs/CONTROL_INTEGRATION.md). El servidor incluido escucha sólo en loopback y sirve para revisión local. Un teléfono requiere el origen HTTPS y el transporte del juego; el build estático por sí solo no los proporciona.
 
 ## Ejecutar el laboratorio
 
@@ -15,18 +30,19 @@ npm run lab
 
 Abrir http://127.0.0.1:4173/lab.html. El servidor Node sólo escucha loopback; sirve dist y proxya `/api/players` al backend. Es una herramienta de laboratorio, no el instalador del videojuego. Backend requiere JDK21 para desarrollo; primera descarga de dependencias requiere Internet.
 
-## Dos pantallas, alcances distintos
+## Tres pantallas, alcances distintos
 
 | Entrada | Estado y responsabilidad |
 |---|---|
 | `/lab.html` | React → GET/POST reales → Spring Boot/JDBC → SQLite. Listado paginado, registro validado, mensajes de error y estado local offline. Integración comprobada en Chrome de escritorio. |
-| `/index.html` | Demostración histórica del mando y avatares JSONPlaceholder. Los botones modifican estado local; no acreditan conexión RTC/Unity ni gameplay real. |
+| `/` y `/index.html` | Control del juego: admisión QR, nombre confirmado por la PC, permisos por gesto, sensores, reconexión, pausa y controles según la prueba. Requiere el servidor técnico del juego. |
+| `/demo.html` | Demostración histórica del mando y avatares JSONPlaceholder. Los botones modifican estado local; no acreditan conexión RTC/Unity ni gameplay real. |
 
-`LabApp.jsx` coordina formulario/listado; `player-api.js` valida contrato y clasifica errores; `lab-store.js` guarda estado en IndexedDB. El transporte de controles del monorepo no se modifica.
+`App.jsx` y `controller/` coordinan el control; `input/` contiene transporte y captura. `LabApp.jsx` coordina formulario/listado; `player-api.js` valida contrato y clasifica errores; `lab-store.js` guarda estado en IndexedDB. No se modifica el protocolo del juego ni la API de jugadores.
 
 ## PWA y offline implementados
 
-- `public/manifest.json` y `public/icons/lab.svg` se copian a dist. `tools/build-worker.mjs` genera `dist/sw.js` a partir de los assets compilados con hash; no precachea archivos JSX fuente.
+- `manifest.webmanifest` identifica el control; `manifest.json` y `icons/lab.svg` identifican el laboratorio. `tools/build-worker.mjs` invoca el generador común de `dist/sw.js` a partir de assets compilados con hash; no precachea archivos JSX fuente.
 - Cache Storage contiene sólo app shell del mismo origen. API y POST quedan excluidos del Service Worker. No existen competidores de rescate ni respuestas SQL ficticias en el laboratorio.
 - IndexedDB `gorilla-players-lab-v1/state` guarda la última consulta y el borrador. La consulta local se etiqueta como posiblemente desactualizada; un borrador no es una fila confirmada en SQLite.
 - Sin conexión se puede recargar después de una visita online y conservar el borrador. Volver online no envía POST automáticamente; requiere acción explícita. No hay Background Sync.
@@ -36,7 +52,7 @@ Para comprobar offline usar `npm run build` + `npm run lab`; el modo Vite de des
 
 ## Validación y entrega
 
-Siete pruebas de cliente, build Vite6.4.4 y auditoría npm sin vulnerabilidades reportadas: [CI PASS](https://github.com/Josue1855/Dise-o_pwa/actions/runs/38989521358) en commit `69084f5`. React18.3.1, plugin-react4.7.0; versiones completas en package-lock.json.
+Revisión local del 5 de noviembre de 2026: **107 pruebas aprobadas**, build Vite **8.3.6**, React **19.3.0**, plugin-react **6.1.2** y auditoría npm con **cero vulnerabilidades reportadas**. Se comprobaron 33 vistas adaptables, y navegador → POST/GET → Spring Boot → SQLite real con datos temporales. También se verificó la recarga offline del control y del laboratorio. [Resultados y capturas](docs/CONTROL_INTEGRATION.md). Esto no certifica teléfono físico, sensores reales, WebRTC/Unity ni LAN/HTTPS.
 
 [Dossier central con capturas auténticas, SQL, logs, red y almacenamiento](https://github.com/Josue1855/Gorilla-Escape-Backend/tree/feature/players-sqlite-increment/docs/laboratorio). [Guía local](docs/LABORATORIO.md). Quedan tres capturas literales de DevTools Network/Application/Console; JSON CDP no se presenta como captura. Prueba LAN/WAN física, teléfono e instalador final pendientes. Backend privado: el evaluador necesita acceso o el paquete autorizado de evidencias.
 

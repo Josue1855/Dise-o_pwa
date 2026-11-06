@@ -1,0 +1,17 @@
+{
+  "scope": "Production PWA + real Spring Boot/SQLite, desktop Chromium",
+  "passed": true,
+  "notVerified": [
+    "Physical phone",
+    "Unity gameplay",
+    "Real sensors/WebRTC",
+    "LAN/HTTPS"
+  ],
+  "offlineShells": [
+    "lab.html with IndexedDB snapshot",
+    "index.html controller"
+  ],
+  "realPlayerRows": 1,
+  "sqliteHeaderVerified": true,
+  "pageErrors": []
+}
