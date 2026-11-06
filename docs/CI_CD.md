@@ -9,10 +9,12 @@ Tag `pwa-vX.Y.Z` after review to publish a source-derived static build to
 GitHub Releases. This is **not** an APK, hosted deployment, validated mobile
 connection, or a playable Unity build.
 
-The tests under `tests/` are static smoke tests, **not** browser tests,
-gamepad tests, real mobile tests, or backend integration tests. Add component
-and browser/API integration tests when the maintained application actually
-implements those capabilities. The upstream repository is
+The Node 24 workflow runs the complete `npm test` suite: laboratory contract
+tests, controller state/sensor fixtures, service-worker behavior and real HTTP
+proxy routing against isolated upstream fixtures. These do not certify physical
+phones or Unity gameplay. Optional browser scripts and real Spring Boot/SQLite
+verification are documented in [CONTROL_INTEGRATION.md](CONTROL_INTEGRATION.md);
+they are separate from the default CI checks. The upstream repository is
 `Quintana-117/Dise-o_pwa`; changes here must be reviewed and integrated
 there by a collaborator with write access.
 

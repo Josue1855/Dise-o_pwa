@@ -15,12 +15,12 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
       - name: Install locked dependencies
         run: npm ci
       - name: Run available PWA smoke tests
-        run: node --test --test-reporter=tap tests/*.test.mjs
+        run: npm test
       - name: Build
         run: npm run build
       - name: Production dependency security audit
